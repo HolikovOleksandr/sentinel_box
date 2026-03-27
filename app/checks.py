@@ -40,3 +40,20 @@ def check_gateway_reachable(network_info: NetworkInfo) -> CheckResult:
         details=f"Gateway is not reachable: {gateway}",
         ok=False,
     )
+
+
+def check_internet_reachable(target: str = '1.1.1.1') -> CheckResult:
+    ping_result = run_command(['ping', '-c', '1', target])
+
+    if ping_result.returncode == 0:
+        return CheckResult(
+            name='Internet reachable',
+            details=f"Internet is reachable via {target}",
+            ok=True,
+        )
+    
+    return CheckResult(
+        name="internet_reachable",
+        details=f"Internet is not reachable via {target}",
+        ok=False,
+    )
