@@ -3,6 +3,7 @@ from app.checks import (
     check_default_gateway, 
     check_gateway_reachable, 
     check_internet_reachable,
+    check_dns_resolution,
 )
 from app.collectors import (
     collect_basic_info,
@@ -24,6 +25,7 @@ def main() -> None:
     gateway_check = check_default_gateway(network_info)
     gateway_reachable_check = check_gateway_reachable(network_info)
     internet_reachable_check = check_internet_reachable()
+    dns_resolution_check = check_dns_resolution()
 
     print("=== Basic host info ===")
     print(f"User: {basic_info.user}")
@@ -48,6 +50,7 @@ def main() -> None:
     print_check_result(gateway_check)
     print_check_result(gateway_reachable_check)
     print_check_result(internet_reachable_check)
+    print_check_result(dns_resolution_check)
 
 
 if __name__ == "__main__":

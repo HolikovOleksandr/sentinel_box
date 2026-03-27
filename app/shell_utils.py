@@ -2,7 +2,7 @@ from app.models import CommandResult
 import subprocess
 
 
-def run_command(command):
+def run_command(command) -> CommandResult:
     try:
         result = subprocess.run(
             command, 

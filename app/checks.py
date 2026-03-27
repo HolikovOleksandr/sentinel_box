@@ -1,3 +1,4 @@
+import socket
 from app.models import CheckResult, NetworkInfo
 from app.shell_utils import run_command
 
@@ -56,4 +57,22 @@ def check_internet_reachable(target: str = '1.1.1.1') -> CheckResult:
         name="internet_reachable",
         details=f"Internet is not reachable via {target}",
         ok=False,
+    )
+
+
+def check_dns_resolution(domain_name: str = 'example.com') -> CheckResult:
+    try:
+        resolved_ip = socket.gethostbyname(domain_name)
+    
+    except OSError:
+        return CheckResult(
+            name="dns_resolution",
+            details=f"DNS resolution failed for {domain_name}",
+            ok=False,
+        )
+
+    return CheckResult(
+        name="dns_resolution",
+        details=f"DNS resolved {domain_name} to {resolved_ip}",
+        ok=True,
     )
