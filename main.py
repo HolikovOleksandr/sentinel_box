@@ -1,11 +1,16 @@
-from app.collectors import collect_basic_info, collect_network_info, collect_system_info
+from app.collectors import (
+    collect_basic_info,
+    collect_network_info,
+    collect_system_info,
+)
+from app.checks import check_default_gateway
 
 
 def main() -> None:
     basic_info = collect_basic_info()
     network_info = collect_network_info()
     system_info = collect_system_info()
-
+    gateway_check = check_default_gateway(network_info)
 
     print("=== Basic host info ===")
     print(f"User: {basic_info.user}")
@@ -16,7 +21,9 @@ def main() -> None:
     print(f"Default interface: {network_info.default_interface}")
     print(f"Local IPv4: {network_info.local_ip}")
     print(f"Default gateway: {network_info.default_gateway}")
-    print(f"DNS servers: {', '.join(network_info.dns_servers) if network_info.dns_servers else 'None'}")
+    print(
+        f"DNS servers: {', '.join(network_info.dns_servers) if network_info.dns_servers else 'None'}"
+    )
 
     print("\n=== System info ===")
     print(f"OS: {system_info.os_name}")
@@ -25,6 +32,10 @@ def main() -> None:
     print(f"Architecture: {system_info.architecture}")
     print(f"CPU cores: {system_info.cpu_count}")
     print(f"Total RAM (GB): {system_info.total_memory_gb}")
+
+    print("\n=== Checks ===")
+    status = "OK" if gateway_check.ok else "FAIL"
+    print(f"[{status}] {gateway_check.details}")
 
 
 if __name__ == "__main__":

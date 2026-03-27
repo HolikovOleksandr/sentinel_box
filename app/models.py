@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class CommandResult:
     ok: bool
@@ -31,3 +32,10 @@ class SystemInfo:
     architecture: str
     cpu_count: int | None
     total_memory_gb: float | None
+
+
+@dataclass
+class CheckResult:
+    name: str
+    ok: bool
+    details: str
