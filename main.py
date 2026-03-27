@@ -3,7 +3,7 @@ from app.collectors import (
     collect_network_info,
     collect_system_info,
 )
-from app.checks import check_default_gateway
+from app.checks import check_default_gateway, check_gateway_reachable
 
 
 def main() -> None:
@@ -11,6 +11,7 @@ def main() -> None:
     network_info = collect_network_info()
     system_info = collect_system_info()
     gateway_check = check_default_gateway(network_info)
+    gateway_reachable_check = check_gateway_reachable(network_info)
 
     print("=== Basic host info ===")
     print(f"User: {basic_info.user}")
@@ -36,6 +37,9 @@ def main() -> None:
     print("\n=== Checks ===")
     status = "OK" if gateway_check.ok else "FAIL"
     print(f"[{status}] {gateway_check.details}")
+
+    status = "OK" if gateway_reachable_check.ok else "FAIL"
+    print(f"[{status}] {gateway_reachable_check.details}")
 
 
 if __name__ == "__main__":
