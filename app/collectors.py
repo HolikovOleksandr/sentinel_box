@@ -1,4 +1,4 @@
-from app.models import BasicHostInfo, NetworkInfo, SystemInfo
+from app.models import BasicHostInfo, NetworkInfo, SystemInfo, ListeningPort
 from app.shell_utils import run_command
 import platform
 import psutil
@@ -44,7 +44,7 @@ def collect_network_info() -> NetworkInfo:
         default_interface=interface,
         default_gateway=gateway,
         dns_servers=dns_servers,
-        local_ip=ip_v4
+        local_ip=ip_v4,
     )
 
 
@@ -52,7 +52,7 @@ def collect_basic_info() -> BasicHostInfo:
     return BasicHostInfo(
         user=run_command(['whoami']).stdout.strip(),
         hostname=run_command(['hostname']).stdout.strip(),
-        working_directory=run_command(['pwd']).stdout.strip()
+        working_directory=run_command(['pwd']).stdout.strip(),
     )
 
 
@@ -68,3 +68,39 @@ def collect_system_info() -> SystemInfo:
         cpu_count=psutil.cpu_count(),
         total_memory_gb=total_memory_gb,
     )
+
+
+def collect_tcp_listening_ports() -> list[ListeningPort]:
+    listening_ports = []
+
+    try:
+        connections = psutil.net_connections(kind="inet")
+    except psutil.AccessDenied:
+        print("Run app with sudo to see all listening ports")
+        return listening_ports
+
+    for connection in connections:
+        if connection.status != "LISTEN": continue
+        if not connection.laddr: continue
+
+        try:
+            process_name = (
+                psutil.Process(connection.pid).name()
+                if connection.pid is not None
+                else None
+            )
+
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            process_name = None
+
+        listening_ports.append(
+            ListeningPort(
+                protocol="tcp",
+                local_address=connection.laddr.ip,
+                port=connection.laddr.port,
+                pid=connection.pid,
+                process_name=process_name,
+            )
+        )
+
+    return listening_ports

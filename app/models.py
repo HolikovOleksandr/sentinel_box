@@ -39,3 +39,12 @@ class CheckResult:
     name: str
     ok: bool
     details: str
+
+
+@dataclass
+class ListeningPort:
+    protocol: str
+    local_address: str
+    port: int
+    pid: int | None
+    process_name: str | None
