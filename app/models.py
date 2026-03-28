@@ -49,6 +49,7 @@ class BoundPort:
     pid: int | None
     process_name: str | None
 
+
 @dataclass
 class TcpConnection:
     local_address: str
@@ -59,7 +60,19 @@ class TcpConnection:
     pid: int | None
     process_name: str | None
 
+
 @dataclass
 class ProcessConnectionSummary:
     process_name: str
     connection_count: int
+
+
+@dataclass
+class FirewallStatus:
+    enabled: bool
+    
+
+@dataclass
+class FirewallRule:
+    action: str
+    app_path: str

@@ -2,6 +2,8 @@ from app.models import (
     BasicHostInfo,
     CheckResult,
     BoundPort,
+    FirewallRule,
+    FirewallStatus,
     NetworkInfo,
     ProcessConnectionSummary,
     SystemInfo,
@@ -128,6 +130,22 @@ def print_tcp_connection_summary(
 
     for item in summary:
         print(f"- {item.process_name}: {item.connection_count}")
+
+
+def print_firewall_status(firewall_status: FirewallStatus) -> None:
+    print("\n=== Firewall ===")
+    print(f"Enabled: {'yes' if firewall_status.enabled else 'no'}")
+    
+
+def print_firewall_rules(rules: list[FirewallRule]) -> None:
+    print("\n=== Firewall rules ===")
+
+    if not rules:
+        print("No firewall rules found")
+        return
+
+    for rule in sorted(rules, key=lambda item: (item.action, item.app_path.lower())):
+        print(f"- {rule.action.upper()}: {rule.app_path}")
 
 
 def _get_bind_scope(local_address: str) -> str:

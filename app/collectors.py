@@ -1,6 +1,5 @@
 import socket
-
-from app.models import BasicHostInfo, NetworkInfo, ProcessConnectionSummary, SystemInfo, BoundPort
+from app.models import BasicHostInfo, FirewallRule, FirewallStatus, NetworkInfo, ProcessConnectionSummary, SystemInfo, BoundPort
 from app.shell_utils import run_command
 import platform
 import psutil
@@ -245,3 +244,63 @@ def collect_tcp_connection_summary(
         )
 
     return sorted(result, key=lambda item: (-item.connection_count, item.process_name))
+
+
+def collect_firewall_status() -> FirewallStatus:
+    result = run_command(
+        ["/usr/libexec/ApplicationFirewall/socketfilterfw", "--getglobalstate"]
+    )
+
+    if result.returncode != 0:
+        return FirewallStatus(enabled=False)
+
+    output = result.stdout.lower()
+
+    if "firewall is enabled" in output:
+        return FirewallStatus(enabled=True)
+
+    if "firewall is disabled" in output:
+        return FirewallStatus(enabled=False)
+
+    return FirewallStatus(enabled=False)
+
+
+def collect_firewall_rules() -> list[FirewallRule]:
+    firewall_rules = []
+
+    listapps_result = run_command(
+        ["/usr/libexec/ApplicationFirewall/socketfilterfw", "--listapps"]
+    )
+
+    if listapps_result.returncode != 0 or not listapps_result.stdout:
+        return firewall_rules
+
+    app_paths = []
+
+    for line in listapps_result.stdout.splitlines():
+        line = line.strip()
+
+        if not line: continue
+        if line.startswith("ALF:"): continue
+
+        app_paths.append(line)
+
+    for app_path in app_paths:
+        status_result = run_command(
+            [
+                "/usr/libexec/ApplicationFirewall/socketfilterfw",
+                "--getappblocked",
+                app_path,
+            ]
+        )
+
+        if status_result.returncode != 0: continue
+        output = status_result.stdout.lower()
+
+        if "not blocked" in output: action = "allow"
+        elif "blocked" in output: action = "block"
+        else: action = "unknown"
+
+        firewall_rules.append(FirewallRule(action=action, app_path=app_path))
+
+    return firewall_rules
