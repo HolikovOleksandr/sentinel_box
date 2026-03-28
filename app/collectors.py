@@ -146,9 +146,19 @@ def collect_udp_bound_ports() -> list[BoundPort]:
                 protocol="udp",
                 local_address=connection.laddr.ip,
                 port=connection.laddr.port,
-                pid=connection.pid,
                 process_name=process_name,
+                pid=connection.pid,
             )
         )
 
     return bound_ports
+
+
+def collect_exposed_tcp_ports(tcp_ports: list[BoundPort]) -> list[BoundPort]:
+    exposed_ports = []
+
+    for port_info in tcp_ports:
+        if port_info.local_address in {"127.0.0.1", "::1"}: continue
+        exposed_ports.append(port_info)
+
+    return exposed_ports

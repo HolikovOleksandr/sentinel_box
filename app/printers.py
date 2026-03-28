@@ -56,12 +56,28 @@ def print_tcp_listening_ports(ports: list[BoundPort]) -> None:
         )
 
 
-
 def print_udp_bound_ports(ports: list[BoundPort]) -> None:
     print("\n=== UDP bound ports ===")
 
     if not ports:
         print("No UDP bound ports found")
+        return
+
+    for port_info in sorted(ports, key=lambda port: (port.port, port.local_address)):
+        bind_scope = _get_bind_scope(port_info.local_address)
+        process_name = port_info.process_name or "unknown"
+
+        print(
+            f"- {port_info.local_address}:{port_info.port} "
+            f"({bind_scope}, PID: {port_info.pid}, process: {process_name})"
+        )
+
+
+def print_exposed_tcp_ports(ports: list[BoundPort]) -> None:
+    print("\n=== Exposed TCP ports ===")
+
+    if not ports:
+        print("No exposed TCP ports found")
         return
 
     for port_info in sorted(ports, key=lambda port: (port.port, port.local_address)):

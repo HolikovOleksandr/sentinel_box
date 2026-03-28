@@ -10,6 +10,7 @@ from app.collectors import (
     collect_system_info,
     collect_tcp_listening_ports,
     collect_udp_bound_ports,
+    collect_exposed_tcp_ports,
 )
 from app.printers import (
     print_basic_info,
@@ -18,6 +19,7 @@ from app.printers import (
     print_check_result,
     print_tcp_listening_ports,
     print_udp_bound_ports,
+    print_exposed_tcp_ports,
 )
 
 
@@ -27,6 +29,7 @@ def main() -> None:
     system_info = collect_system_info()
     tcp_listening_ports = collect_tcp_listening_ports()
     udp_bound_ports = collect_udp_bound_ports()
+    exposed_tcp_ports = collect_exposed_tcp_ports(tcp_listening_ports)
 
     gateway_check = check_default_gateway(network_info)
     gateway_reachable_check = check_gateway_reachable(network_info)
@@ -44,6 +47,7 @@ def main() -> None:
     print_check_result(dns_resolution_check)
 
     print_tcp_listening_ports(tcp_listening_ports)
+    print_exposed_tcp_ports(exposed_tcp_ports)
     print_udp_bound_ports(udp_bound_ports)
 
 
