@@ -58,3 +58,8 @@ class TcpConnection:
     status: str
     pid: int | None
     process_name: str | None
+
+@dataclass
+class ProcessConnectionSummary:
+    process_name: str
+    connection_count: int

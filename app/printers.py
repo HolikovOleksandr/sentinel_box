@@ -3,6 +3,7 @@ from app.models import (
     CheckResult,
     BoundPort,
     NetworkInfo,
+    ProcessConnectionSummary,
     SystemInfo,
     TcpConnection,
 )
@@ -114,6 +115,19 @@ def print_active_tcp_connections(connections: list[TcpConnection]) -> None:
             f"-> {connection.remote_address}:{connection.remote_port} "
             f"({connection.status}, PID: {connection.pid}, process: {process_name})"
         )
+
+
+def print_tcp_connection_summary(
+    summary: list[ProcessConnectionSummary],
+) -> None:
+    print("\n=== Active TCP connections by process ===")
+
+    if not summary:
+        print("No active TCP connections found")
+        return
+
+    for item in summary:
+        print(f"- {item.process_name}: {item.connection_count}")
 
 
 def _get_bind_scope(local_address: str) -> str:

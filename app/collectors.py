@@ -1,6 +1,6 @@
 import socket
 
-from app.models import BasicHostInfo, NetworkInfo, SystemInfo, BoundPort
+from app.models import BasicHostInfo, NetworkInfo, ProcessConnectionSummary, SystemInfo, BoundPort
 from app.shell_utils import run_command
 import platform
 import psutil
@@ -219,3 +219,29 @@ def collect_active_tcp_connections() -> list[TcpConnection]:
         )
 
     return tcp_connections
+
+
+def collect_tcp_connection_summary(
+    connections: list[TcpConnection],
+) -> list[ProcessConnectionSummary]:
+    summary = {}
+
+    for connection in connections:
+        process_name = connection.process_name or "unknown"
+
+        if process_name not in summary: 
+            summary[process_name] = 0
+
+        summary[process_name] += 1
+
+    result = []
+
+    for process_name, connection_count in summary.items():
+        result.append(
+            ProcessConnectionSummary(
+                process_name=process_name,
+                connection_count=connection_count,
+            )
+        )
+
+    return sorted(result, key=lambda item: (-item.connection_count, item.process_name))
