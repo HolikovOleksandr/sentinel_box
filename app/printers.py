@@ -1,7 +1,7 @@
 from app.models import (
     BasicHostInfo,
     CheckResult,
-    ListeningPort,
+    BoundPort,
     NetworkInfo,
     SystemInfo,
 )
@@ -39,11 +39,29 @@ def print_check_result(check: CheckResult) -> None:
     print(f"[{status}] {check.details}")
 
 
-def print_tcp_listening_ports(ports: list[ListeningPort]) -> None:
+def print_tcp_listening_ports(ports: list[BoundPort]) -> None:
     print("\n=== TCP listening ports ===")
 
     if not ports:
         print("No TCP listening ports found")
+        return
+
+    for port_info in sorted(ports, key=lambda port: (port.port, port.local_address)):
+        bind_scope = _get_bind_scope(port_info.local_address)
+        process_name = port_info.process_name or "unknown"
+
+        print(
+            f"- {port_info.local_address}:{port_info.port} "
+            f"({bind_scope}, PID: {port_info.pid}, process: {process_name})"
+        )
+
+
+
+def print_udp_bound_ports(ports: list[BoundPort]) -> None:
+    print("\n=== UDP bound ports ===")
+
+    if not ports:
+        print("No UDP bound ports found")
         return
 
     for port_info in sorted(ports, key=lambda port: (port.port, port.local_address)):

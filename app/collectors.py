@@ -1,4 +1,6 @@
-from app.models import BasicHostInfo, NetworkInfo, SystemInfo, ListeningPort
+import socket
+
+from app.models import BasicHostInfo, NetworkInfo, SystemInfo, BoundPort
 from app.shell_utils import run_command
 import platform
 import psutil
@@ -70,7 +72,7 @@ def collect_system_info() -> SystemInfo:
     )
 
 
-def collect_tcp_listening_ports() -> list[ListeningPort]:
+def collect_tcp_listening_ports() -> list[BoundPort]:
     listening_ports = []
 
     try:
@@ -94,7 +96,7 @@ def collect_tcp_listening_ports() -> list[ListeningPort]:
             process_name = None
 
         listening_ports.append(
-            ListeningPort(
+            BoundPort(
                 protocol="tcp",
                 local_address=connection.laddr.ip,
                 port=connection.laddr.port,
@@ -104,3 +106,49 @@ def collect_tcp_listening_ports() -> list[ListeningPort]:
         )
 
     return listening_ports
+
+def collect_udp_bound_ports() -> list[BoundPort]:
+    bound_ports = []
+    seen = set()
+
+    try:
+        connections = psutil.net_connections(kind="inet")
+    except psutil.AccessDenied:
+        print("Run app with sudo to see all UDP bound ports")
+        return bound_ports
+
+    for connection in connections:
+        if connection.type != socket.SOCK_DGRAM: continue
+        if not connection.laddr: continue
+        if connection.laddr.port == 0: continue
+
+        try:
+            process_name = (
+                psutil.Process(connection.pid).name()
+                if connection.pid is not None
+                else None
+            )
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            process_name = None
+
+        key = (
+            "udp",
+            connection.laddr.ip,
+            connection.laddr.port,
+            connection.pid,
+        )
+
+        if key in seen: continue
+        seen.add(key)
+
+        bound_ports.append(
+            BoundPort(
+                protocol="udp",
+                local_address=connection.laddr.ip,
+                port=connection.laddr.port,
+                pid=connection.pid,
+                process_name=process_name,
+            )
+        )
+
+    return bound_ports

@@ -42,7 +42,7 @@ class CheckResult:
 
 
 @dataclass
-class ListeningPort:
+class BoundPort:
     protocol: str
     local_address: str
     port: int
