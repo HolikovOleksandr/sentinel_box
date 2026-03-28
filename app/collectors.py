@@ -162,3 +162,60 @@ def collect_exposed_tcp_ports(tcp_ports: list[BoundPort]) -> list[BoundPort]:
         exposed_ports.append(port_info)
 
     return exposed_ports
+
+import socket
+import psutil
+
+from app.models import TcpConnection
+
+
+def collect_active_tcp_connections() -> list[TcpConnection]:
+    tcp_connections = []
+    seen = set()
+
+    try:
+        connections = psutil.net_connections(kind="inet")
+    except psutil.AccessDenied:
+        print("Run app with sudo to see all active TCP connections")
+        return tcp_connections
+
+    for connection in connections:
+        if connection.type != socket.SOCK_STREAM: continue
+        if connection.status == "LISTEN": continue
+        if not connection.laddr or not connection.raddr: continue
+
+        try:
+            process_name = (
+                psutil.Process(connection.pid).name()
+                if connection.pid is not None
+                else None
+            )
+
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            process_name = None
+
+        key = (
+            connection.laddr.ip,
+            connection.laddr.port,
+            connection.raddr.ip,
+            connection.raddr.port,
+            connection.status,
+            connection.pid,
+        )
+
+        if key in seen: continue
+        seen.add(key)
+
+        tcp_connections.append(
+            TcpConnection(
+                local_address=connection.laddr.ip,
+                local_port=connection.laddr.port,
+                remote_address=connection.raddr.ip,
+                remote_port=connection.raddr.port,
+                status=connection.status,
+                pid=connection.pid,
+                process_name=process_name,
+            )
+        )
+
+    return tcp_connections

@@ -4,6 +4,7 @@ from app.models import (
     BoundPort,
     NetworkInfo,
     SystemInfo,
+    TcpConnection,
 )
 
 
@@ -87,6 +88,31 @@ def print_exposed_tcp_ports(ports: list[BoundPort]) -> None:
         print(
             f"- {port_info.local_address}:{port_info.port} "
             f"({bind_scope}, PID: {port_info.pid}, process: {process_name})"
+        )
+
+
+def print_active_tcp_connections(connections: list[TcpConnection]) -> None:
+    print("\n=== Active TCP connections ===")
+
+    if not connections:
+        print("No active TCP connections found")
+        return
+
+    for connection in sorted(
+        connections,
+        key=lambda item: (
+            item.remote_address,
+            item.remote_port,
+            item.local_address,
+            item.local_port,
+        ),
+    ):
+        process_name = connection.process_name or "unknown"
+
+        print(
+            f"- {connection.local_address}:{connection.local_port} "
+            f"-> {connection.remote_address}:{connection.remote_port} "
+            f"({connection.status}, PID: {connection.pid}, process: {process_name})"
         )
 
 

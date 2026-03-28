@@ -48,3 +48,13 @@ class BoundPort:
     port: int
     pid: int | None
     process_name: str | None
+
+@dataclass
+class TcpConnection:
+    local_address: str
+    local_port: int
+    remote_address: str
+    remote_port: int
+    status: str
+    pid: int | None
+    process_name: str | None
